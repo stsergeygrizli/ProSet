@@ -1,1 +1,13 @@
-pymongo~=4.10.1
+# Core dependencies
+pymongo>=4.0
+PyQt5>=5.15
+openpyxl>=3.0
+
+# Development dependencies
+pytest>=7.0
+flake8>=4.0
+black>=22.0
+
+# Optional dependencies
+pandas>=1.4
+python-dotenv>=0.19
