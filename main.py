@@ -11,9 +11,14 @@ def test_database_operations():
     """
     db_handler = DatabaseHandler()
 
-    # Sample product data
+    # Sample product data with updated schema
     sample_product = {
-        "sku": "TEST123",
+        "sku_info": {
+            "sku": "TEST123",
+            "sku_type": "generated",
+            "sku_status": "current",
+            "old_sku": "NA"  # No previous SKU for this example
+        },
         "vendor": {"vendor_name": "Vendor A"},
         "sizes": {
             "dimensions": [
@@ -33,7 +38,7 @@ def test_database_operations():
 
     # Validate product data
     try:
-        validate_product_data(sample_product)
+        validate_product_data(sample_product)  # Ensure the validation function is updated for the new schema
         print("Validation passed.")
     except ValueError as e:
         print(f"Validation error: {e}")

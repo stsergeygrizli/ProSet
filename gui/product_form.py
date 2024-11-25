@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QMainWindow, QMenuBar, QMenu, QAction, QApplication
 from gui.vendor_management_window import VendorManagementWindow
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton
+from gui.sku_management_window import SkuManagementWindow
 import sys
 
 
@@ -29,10 +29,20 @@ class ProductForm(QMainWindow):
         vendor_action.triggered.connect(self.open_vendor_management)
         vendor_menu.addAction(vendor_action)
 
+        # Manage SKUs Action
+        skus_action = QAction("Manage SKUs", self)
+        skus_action.triggered.connect(self.open_sku_management)
+        vendor_menu.addAction(skus_action)
+
     def open_vendor_management(self):
         """Open the Vendor Management Window."""
-        vendor_window = VendorManagementWindow()
-        vendor_window.exec_()
+        self.vendor_window = VendorManagementWindow()
+        self.vendor_window.exec_()
+
+    def open_sku_management(self):
+        """Open the SKU Management window."""
+        self.sku_management_window = SkuManagementWindow()
+        self.sku_management_window.exec_()
 
 
 if __name__ == "__main__":

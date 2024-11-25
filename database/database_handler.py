@@ -27,13 +27,14 @@ class DatabaseHandler:
         """
         collection = self.get_collection(ALL_PRODUCTS_COLLECTION)
 
-        if "sku" not in product_data or "vendor" not in product_data:
-            raise ValueError("Both 'sku' and 'vendor' fields are required.")
+        if "sku_info" not in product_data or "vendor" not in product_data:
+            raise ValueError("'sku_info' and 'vendor' fields are required.")
 
+        sku = product_data["sku_info"]["sku"]
         result = collection.update_one(
-            {"sku": product_data["sku"]},  # Match by SKU
-            {"$set": product_data},        # Set new data
-            upsert=True                    # Insert if not found
+            {"sku_info.sku": sku},  # Match by SKU in sku_info
+            {"$set": product_data},  # Set new data
+            upsert=True  # Insert if not found
         )
         print(f"Insert/Update result: {result.raw_result}")
         return result
@@ -43,7 +44,7 @@ class DatabaseHandler:
         Fetch a product document by SKU.
         """
         collection = self.get_collection(ALL_PRODUCTS_COLLECTION)
-        return collection.find_one({"sku": sku})
+        return collection.find_one({"sku_info.sku": sku})
 
     def fetch_products_by_vendor(self, vendor_name):
         """
@@ -52,16 +53,28 @@ class DatabaseHandler:
         collection = self.get_collection(ALL_PRODUCTS_COLLECTION)
         return list(collection.find({"vendor.vendor_name": vendor_name}))
 
-    def update_product_field(self, sku, field_name, value):
+    def update_product_sku_status(self, sku, status):
         """
-        Update a specific field for a product by SKU.
+        Update the 'sku_status' field for a product by SKU.
         """
         collection = self.get_collection(ALL_PRODUCTS_COLLECTION)
         result = collection.update_one(
-            {"sku": sku},
-            {"$set": {field_name: value}}
+            {"sku_info.sku": sku},
+            {"$set": {"sku_info.sku_status": status}}
         )
-        print(f"Field '{field_name}' updated for SKU '{sku}'. Result: {result.raw_result}")
+        print(f"SKU status updated for SKU '{sku}' to '{status}'. Result: {result.raw_result}")
+        return result
+
+    def replace_product_sku(self, old_sku, new_sku):
+        """
+        Replace a product's SKU and record the old SKU in 'old_sku'.
+        """
+        collection = self.get_collection(ALL_PRODUCTS_COLLECTION)
+        result = collection.update_one(
+            {"sku_info.sku": old_sku},
+            {"$set": {"sku_info.sku": new_sku, "sku_info.old_sku": old_sku}}
+        )
+        print(f"Replaced old SKU '{old_sku}' with new SKU '{new_sku}'. Result: {result.raw_result}")
         return result
 
     def delete_product(self, sku):
@@ -69,7 +82,7 @@ class DatabaseHandler:
         Delete a product document by SKU.
         """
         collection = self.get_collection(ALL_PRODUCTS_COLLECTION)
-        result = collection.delete_one({"sku": sku})
+        result = collection.delete_one({"sku_info.sku": sku})
         print(f"Product with SKU '{sku}' deleted. Result: {result.raw_result}")
         return result
 

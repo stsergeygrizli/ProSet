@@ -1,5 +1,5 @@
 from pymongo import MongoClient
-from config.settings import MONGO_URI, DATABASE_NAME, COLLECTION_NAME
+from config.settings import MONGO_URI, DATABASE_NAME, ALL_PRODUCTS_COLLECTION
 
 def update_validator():
     """
@@ -8,21 +8,43 @@ def update_validator():
     # MongoDB client connection
     client = MongoClient(MONGO_URI)
     db = client[DATABASE_NAME]
-    collection = db[COLLECTION_NAME]
+    collection = db[ALL_PRODUCTS_COLLECTION]  # Use the specific collection name constant
 
     # Define the updated validator
     validator = {
         "$jsonSchema": {
             "bsonType": "object",
-            "required": ["sku", "vendor"],
+            "required": ["sku_info", "vendor"],
             "properties": {
-                "sku": {
-                    "bsonType": "string",
-                    "description": "Unique SKU for the product."
+                "sku_info": {
+                    "bsonType": "object",
+                    "description": "SKU information.",
+                    "required": ["sku", "sku_type", "sku_status"],
+                    "properties": {
+                        "sku": {
+                            "bsonType": "string",
+                            "description": "Unique SKU for the product."
+                        },
+                        "sku_type": {
+                            "bsonType": "string",
+                            "enum": ["generated", "vendor"],
+                            "description": "Type of the SKU: 'generated' or 'vendor'."
+                        },
+                        "sku_status": {
+                            "bsonType": "string",
+                            "enum": ["current", "discontinued"],
+                            "description": "Status of the SKU: 'current' or 'discontinued'."
+                        },
+                        "old_sku": {
+                            "bsonType": "string",
+                            "description": "The previous SKU value if the SKU has been replaced or 'NA'"
+                        }
+                    }
                 },
                 "vendor": {
                     "bsonType": "object",
                     "description": "Vendor details.",
+                    "required": ["vendor_name"],
                     "properties": {
                         "vendor_name": {
                             "bsonType": "string",
@@ -83,7 +105,7 @@ def update_validator():
     # Update the validator
     try:
         result = db.command({
-            "collMod": COLLECTION_NAME,
+            "collMod": ALL_PRODUCTS_COLLECTION,  # Reference the correct collection constant
             "validator": validator,
             "validationAction": "error",  # Reject invalid documents
             "validationLevel": "strict"  # Enforce validation on all inserts and updates
